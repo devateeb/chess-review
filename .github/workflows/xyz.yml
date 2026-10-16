@@ -1,0 +1,41 @@
+name: Download and Extract ZIP
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - main
+
+permissions:
+  contents: write
+
+jobs:
+  download-and-extract:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Download ZIP from Google Drive
+        run: |
+          pip install gdown
+          gdown "https://drive.google.com/uc?export=download&id=1wVfsM3JIUw8NEN4OczAC7v3cV48iz7B0" -O archive.zip
+
+      - name: Create index folder and extract ZIP
+        run: |
+          mkdir -p index
+          unzip -o archive.zip -d index
+          rm archive.zip
+
+      - name: Commit extracted files
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add index/
+          if ! git diff --cached --quiet; then
+            git commit -m "Download and extract ZIP into index"
+            git push
+          else
+            echo "No changes to commit."
+          fi
